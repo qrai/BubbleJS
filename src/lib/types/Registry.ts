@@ -1,12 +1,11 @@
-import Component from './Component'
 import Directive from './Directive'
 
 class Registry {
-  private style: HTMLElement
-  private defineStyle(origin: string, css: string) {
+  private style: HTMLElement | null = null
+  public defineStyle(origin: string, css: string) {
     if(!this.style) {
       let style = document.createElement('style')
-      document.querySelector('head').appendChild(style)
+      document.querySelector('head')?.appendChild(style)
       this.style = style
     }
 
@@ -14,7 +13,18 @@ class Registry {
   }
   
   private components: { [key: string]: any } = {}
-  public defineComponent(name: string, classDefinition) {
+  public tryDefineComponent(name: string, classDefinition: any): boolean {
+    if(this.components[name]) {
+      return false
+    }
+    
+    // Add to registry
+    this.components[name] = classDefinition
+    // Define custom element
+    customElements.define(name, classDefinition)
+    return true
+  }
+  public defineComponent(name: string, classDefinition: any) {
     if(this.components[name]) {
       throw new Error(`Failed to define component <${name}> in registry, component with same name is already existed`)
     }
@@ -40,8 +50,4 @@ class Registry {
   }
 }
 
-// Create global registry
-const global = new Registry()
-window.registry = global
-
-export default global
+export default new Registry()

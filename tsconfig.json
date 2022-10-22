@@ -2,8 +2,8 @@
     "compilerOptions": {
       /* Projects */
       "incremental": true,
-      "target": "es2016",
-      "lib": ["es6","DOM"],
+      "target": "es2017",
+      "lib": ["ES2017","DOM", "DOM.Iterable"],
       "experimentalDecorators": true,
   
       /* Modules */
