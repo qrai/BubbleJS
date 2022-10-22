@@ -1,6 +1,6 @@
 import ComponentContext from '../types/ComponentContext'
 
-import createProps from './createProps'
+import createFields from './createFields'
 import transform from './transform'
 
 type ComponentMetadata = {
@@ -9,13 +9,16 @@ type ComponentMetadata = {
   events: object
 }
 
-export default function createComponent (com: Component) {
+export default function createComponentClass(com: Component) {
   return class extends HTMLElement {
+    private base: Component
     private metadata: ComponentMetadata
-    private context: ComponentContext
+    public context: ComponentContext
 
     constructor() {
       super()
+
+      this.base = com
 
       // Metadata
       this.metadata = {
@@ -24,52 +27,69 @@ export default function createComponent (com: Component) {
         events: com[Symbol.for('events')]
       }
 
-      // Set props
-      this.props = createProps(this, this.render)
-
       // Set content
       this.content = this.innerHTML
 
       // Create context
-      this.context = new Proxy({
-        ...this.props,
-        render: this.render
-      }, {
-        get(target, key) {
-
-        },
-        set(target, key, value) {
+      let self = this
+      this.context = new Proxy({}, {
+        get: (target, key) => {
+          console.log('GET', key, this.base[key])
           
+          // render(), emit() functions
+          if(key === 'render' || key === 'emit') { return self[key] }
+          // Attribute
+          else if(self.hasAttribute(key)) { return self.getAttribute(key) }
+          // Prop
+          else if(self.metadata.props?.[key]) {
+            return target[key] ?? this.base[key] // TODO: get default in meta instead
+          }
+          // Ref
+          else if(self.metadata.refs?.includes(key)) {
+            return target[key] ?? this.base[key]
+          }
+          // Method
+          else if(typeof this.base[key] === 'function') {
+            let prohibited = [
+              'template',
+              'onCreate', 'onAmount', 'onAdopt', 'onDestroy'
+            ]
+            return prohibited.includes(key) ? undefined : this.base[key]
+          }
+        },
+        set: (target, key, value) => {
+          // Attribute
+          if(self.hasAttribute(key)) {
+            self.setAttribute(key, value)
+          }
+          // Prop
+          else if(self.metadata.props?.[key]) {
+            target[key] = value
+            self.render()
+          }
+          // Ref
+          else if(self.metadata.refs?.includes(key)) {
+            target[key] = value
+            self.render()
+          }
         }
       })
       
       // Call hook onCreate
-      com.onCreate?.bind(this.context)()
+      this.base.onCreate?.bind(this.context)()
     }
 
     // Lifecycle hooks
     connectedCallback() {
       this.render()
       
-      com.onMount?.bind(this.context)()
+      this.base.onMount?.bind(this.context)()
     }
     adoptedCallback() {
-      com.onAdopt?.bind(this.context)()
+      this.base.onAdopt?.bind(this.context)()
     }
     disconnectedCallback() {
-      com.onDestroy?.bind(this.context)()
-    }
-
-    // Getting methods/props
-    getValue(name: string): any {
-      // Dont return prohibited values
-      const prohibited = [
-        'template', 'onCreate', 'onMount', 'onDestroy', 'onAdopt'
-      ]
-      if(prohibited.includes(name)) return undefined
-
-      // Return value
-      return com[name]
+      this.base.onDestroy?.bind(this.context)()
     }
 
     // Event emitting
@@ -81,14 +101,14 @@ export default function createComponent (com: Component) {
     public content: string
     private render() {
       // Build template and use it
-      let template = com.template?.bind(this.context)()
+      let template = this.base.template?.bind(this.context)()
       let templateFragment = document.createElement('div')
       templateFragment.innerHTML = template
 
       // Walk to execute (Directives, events, etc)
       const walk = (parent: HTMLElement) => {
         for(let child of parent.children) {
-          transform(com, this, child)
+          transform(this, child)
           walk(child)
         }
       }

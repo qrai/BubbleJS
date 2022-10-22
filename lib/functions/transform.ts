@@ -2,7 +2,7 @@ import Registry from '../types/Registry'
 import Directive from '../types/Directive'
 
 // Transform functional DOMElement inside component
-export default function transform(com: any, comEl: HTMLElement, node: HTMLElement) {
+export default function transform(comEl: HTMLElement, node: HTMLElement) {
   // Walk every attribute
   for(let attr of [...node.attributes]) {
     const { name, value } = attr
@@ -34,7 +34,7 @@ export default function transform(com: any, comEl: HTMLElement, node: HTMLElemen
     // Passing prop/method/etc to property
     else if(name.startsWith(':')) {
       let prop: string = name.replace(':', '')
-      let propValue: any = comEl.getValue(value)
+      let propValue: any = comEl.context[value]
 
       if(propValue === undefined) {
         throw new Error(`Invalid property value for ${name}, "${value}" was undefined`)
@@ -51,10 +51,10 @@ export default function transform(com: any, comEl: HTMLElement, node: HTMLElemen
     // Event listener
     else if(name.startsWith('@')) {
       let event: string = name.replace('@', '')
-      let listenerValue: any = comEl.getValue(value)
+      let listenerValue: any = comEl.context[value]
 
       if(typeof listenerValue !== 'function') {
-        throw new Error(`Invalid event listener for ${name} event, "${value}" was not a function`)
+        throw new Error(`Invalid event listener for ${name} event, "${value}" was not a function (${typeof listenerValue})`)
       }
       
       // Add event listener

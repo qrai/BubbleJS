@@ -1,4 +1,4 @@
-import { Component, Prop } from '../lib/bubble.ts'
+import { Component, Prop, Ref } from '../lib/bubble.ts'
 
 class MySpan extends Component {
   get name() {
@@ -22,10 +22,6 @@ class MySpan extends Component {
       }
     `
   }
-
-  onMount() {
-    console.log('mount', this.props)
-  }
 }
 Component.define(MySpan)
 
@@ -38,10 +34,11 @@ class MyButton extends Component {
   public count: number = 0
   
   template() {
+    console.log(this)
     return `
     <button --bind @click="onClick">
       <my-span variant="dark">
-        Count ${this.count}
+        Count 0
       </my-span>
     </button>
     `
