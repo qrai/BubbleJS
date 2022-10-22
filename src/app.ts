@@ -1,12 +1,12 @@
-import { Component, Prop, Ref } from '../lib/bubble.ts'
+import { Component, Prop, Ref } from './lib/bubble'
 
 class MySpan extends Component {
   get name() {
     return 'my-span'
   }
 
-  @Prop()
-  public variant: string
+  @Prop({ required: true })
+  public variant: string = ''
   
   template() {
     return `
@@ -30,12 +30,12 @@ class MyButton extends Component {
     return 'my-button'
   }
 
-  @Ref
+  @Ref({})
   public count: number = 0
   
   template() {
     console.log(this)
-    return `
+    return /*html*/`
     <button --bind @click="onClick">
       <my-span variant="dark">
         Count 0
@@ -44,7 +44,7 @@ class MyButton extends Component {
     `
   }
 
-  onClick(e) {
+  onClick(e: any) {
     console.log('was click')
   }
 

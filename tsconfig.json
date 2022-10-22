@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+      /* Projects */
+      "incremental": true,
+      "target": "es2016",
+      "lib": ["es6","DOM"],
+      "experimentalDecorators": true,
+  
+      /* Modules */
+      "module": "ESNext",
+      "rootDir": "src",
+      "moduleResolution": "classic",
+  
+      /* JavaScript Support */
+      "allowJs": true,
+  
+      /* Emit */
+      "declaration": false,
+      "outDir": "build",
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+  
+      /* Type Checking */
+      "strict": true,
+      "noImplicitAny": true,
+      "skipLibCheck": true 
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules"]
+  }
