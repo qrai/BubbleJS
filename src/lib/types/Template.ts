@@ -1,21 +1,28 @@
-import ComponentBase from "./ComponentBase";
-import Directive from "./Directive";
-import Registry from "./Registry";
+import ComponentBase from "./ComponentBase"
+import Directive from "./Directive"
+import HtmlTemplate from "./HtmlTemplate"
+import Registry from "./Registry"
 
+function getValue(name: string, params: TemplateParams) {
+  // Non-primitive value
+  if(name.startsWith('$')) {
+    return params.template.values[name] ?? name
+  }
+  else {
+    return params.state[name] ?? name
+  }
+}
 function getAsCondition(value: string): boolean {
   return value.length > 0 && value !== 'false' && value !== '[]'
 }
-function getAsFunction(value: string): Function | null {
-  if(value.startsWith('function')) {
-    return new Function('return ' + value)
-  }
-  else if(value.startsWith('(')) {
-    return new Function('return void 0')
-  }
 
-  return null
+function getNextNode(node: any) {
+  let nextEl = node.nextSibling
+  while(nextEl && nextEl.nodeType !== 1) {
+    nextEl = nextEl.nextSibling
+  }
+  return nextEl
 }
-
 function compileNode(component: ComponentBase, node: any, params: TemplateParams) {
   // Walk every attribute
   for(let attr of [...node.attributes]) {
@@ -40,14 +47,14 @@ function compileNode(component: ComponentBase, node: any, params: TemplateParams
       let condition: boolean = getAsCondition(value)
 
       // Hide if not met condition (else branch visible)
-      if(!condition) { node.style.display = 'none' }
+      if(condition === false) { node.style.display = 'none' }
 
       // Else block
-      let nextEl = node.nextSibling
+      let nextEl = getNextNode(node)
       if(nextEl && nextEl.nodeType === 1 && nextEl.hasAttribute('--else')) {
         nextEl.removeAttribute('--else')
         // Hide if met condition (if branch visible)
-        if(condition) { node.style.display = 'none' }
+        if(condition === true) { nextEl.style.display = 'none' }
       }
     }
     // Conditional attribute
@@ -65,32 +72,15 @@ function compileNode(component: ComponentBase, node: any, params: TemplateParams
       if(!directive) {
         console.error(`Directive ${name} was not defined in registry`)
       }
+      let val: any = getValue(value, params)
 
       // Call directive
-      directive?.(node, value)
-    }
-    // Passing prop/method/etc to property
-    else if(name.startsWith(':')) {
-      let prop: string = name.replace(':', '')
-      let propValue: any = params.state[value]
-
-      if(propValue === undefined) {
-        throw new Error(`Invalid property value for ${name}, "${value}" was undefined`)
-      }
-
-      // Set as property
-      if(node[prop]) {
-        node[prop] = propValue
-      }
-      else if(typeof propValue === 'string') {
-        node.setAttribute(prop, propValue)
-      }
+      directive?.(node, val)
     }
     // Event listener
     else if(name.startsWith('@')) {
       let event: string = name.replace('@', '')
-      //let actualFunction = getAsFunction(value)
-      let listener: any = params.state[value]
+      let listener: any = getValue(value, params)
 
       if(typeof listener !== 'function') {
         throw new Error(`Invalid event listener for ${name} event, "${value}" was not a function (${typeof listener})`)
@@ -98,6 +88,18 @@ function compileNode(component: ComponentBase, node: any, params: TemplateParams
       
       // Add event listener
       node[`on${event}`] = (e: any) => listener.bind(params.state)(e)
+    }
+    // Passing non-primitive value to property
+    else if(value.startsWith('$')) {
+      let propValue: any = params.template.values[value]
+
+      if((value in params.template.values) === false) {
+        throw new Error(`Invalid property value for ${name}, "${value}" was undefined`)
+      }
+
+      // Set value
+      console.log(`Setting "${name}" of <${node.tagName.toLowerCase()}> to `, propValue)
+      node[name] = propValue
     }
     else {
       return
@@ -109,7 +111,7 @@ function compileNode(component: ComponentBase, node: any, params: TemplateParams
 }
 
 type TemplateParams = {
-  template: string,
+  template: HtmlTemplate,
   content: string,
   state: any
 }
@@ -117,7 +119,7 @@ export default class Template {
   static compile(component: ComponentBase, params: TemplateParams): HTMLCollection {
     // Create fragment and paste template
     let fragEl = document.createElement('div')
-    fragEl.innerHTML = params.template
+    fragEl.innerHTML = params.template.raw
 
     // Walk every node
     const walk = (parent: Element) => {

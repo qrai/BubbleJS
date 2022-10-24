@@ -1,21 +1,40 @@
-import { ComponentBase, Component, Prop, Ref, html } from './lib/bubble'
+import { ComponentBase, Component, Prop, Ref, Registry, html } from './lib/bubble'
+
+// --html directive
+Registry.defineDirective('html', (el: HTMLElement, value: any) => {
+  el.innerHTML = typeof value === 'string' ? value : value.raw ?? ''
+})
+
+function useRef(val: any): { value: any } {
+  return { value: null }
+}
 
 @Component('my-button')
 class MyButton extends ComponentBase {
-  @Ref
-  public count: number = 0
-  
   template() {
     return html`
-    <button disabled:if="${this.count > 10}" @click="onClick">
-      <my-span variant="dark">
-        Count ${this.count}
-      </my-span>
-    </button>
+      <button>
+        <span --html="$hi"></span>
+      </button>
     `
   }
 
-  onClick() {
-    this.count++
+  styles() {
+    return /*css*/`
+      button {
+        padding: 8px 20px;
+
+        background: blue;
+        color: white;
+
+        border: none;
+        border-radius: 10px;
+        outline: none;
+
+        cursor: pointer;
+
+        font-size: 14px;
+      }
+    `
   }
 }

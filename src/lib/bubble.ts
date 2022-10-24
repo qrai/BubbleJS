@@ -1,5 +1,7 @@
 import ComponentBase from './types/ComponentBase'
 
+import Registry from './types/Registry'
+
 // Decorators
 import Component from './decorators/Component.dec.js'
 import Prop from './decorators/Prop.dec.js'
@@ -15,6 +17,8 @@ export {
   Prop,
   Ref,
   Event,
+
+  Registry,
 
   html
 }

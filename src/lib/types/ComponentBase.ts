@@ -1,3 +1,4 @@
+import HtmlTemplate from "./HtmlTemplate"
 import Template from "./Template"
 
 const ComponentPublicFunctions: string[] = [
@@ -11,19 +12,32 @@ const ComponentProps: symbol = Symbol.for('props')
 const ComponentRefs: symbol = Symbol.for('refs')
 const ComponentEvents: symbol = Symbol.for('events')
 
+type EmitOptions = {
+  bubbling: boolean
+}
+type EmitFunction = {
+  (data?: any, options?: EmitOptions): any
+}
+
 export default abstract class ComponentBase extends HTMLElement {
-  protected content: string
-  protected state: any
+  protected __content: string
+  protected __root: ShadowRoot
+  protected __state: any
 
   constructor() {
     super()
 
-    this.content = this.innerHTML
+    this.__content = this.innerHTML
+    this.innerHTML = ''
 
-    this.state = new Proxy(this, {
+    this.__root = this.attachShadow({ mode: 'closed' })
+
+    this.__state = new Proxy(this, {
       get: (target: any, key: string) => {
         // render(), emit() functions
-        if(ComponentPublicFunctions.includes(key)) { return target[key] }
+        if(ComponentPublicFunctions.includes(key)) {
+          return target[key]
+        }
         // Attribute
         else if(target.hasAttribute(key)) { return target.getAttribute(key) }
         // Prop
@@ -40,15 +54,21 @@ export default abstract class ComponentBase extends HTMLElement {
         }
       },
       set: (target: any, key: string, value: any) => {
-        // Attribute
-        if(target.hasAttribute(key)) {
-          target.setAttribute(key, value)
+        // Prop
+        if(target[ComponentProps]?.[key] && key in target && value?._from === 'outside') {
+          target[key] = value.value
+          this.render()
           return true
         }
         // Ref
         else if(target[ComponentRefs]?.includes(key) && key in target) {
           target[key] = value
           this.render()
+          return true
+        }
+        // Attribute
+        else if(target.hasAttribute(key)) {
+          target.setAttribute(key, value)
           return true
         }
 
@@ -58,7 +78,7 @@ export default abstract class ComponentBase extends HTMLElement {
   }
 
   // Component HTML & CSS
-  abstract template(): string
+  abstract template(): HtmlTemplate
   styles?(): string
 
   // Hooks
@@ -70,26 +90,40 @@ export default abstract class ComponentBase extends HTMLElement {
   // Functionality
   render() {
     // Get HTML template
-    let template = this.template.bind(this.state)()
+    let template: HtmlTemplate = this.template.bind(this.__state)()
+    let style: string | undefined = this.styles?.bind(this.__state)()
 
     // Compile template
     //TODO: do DOM diffing for perfomant rendering
     //TODO: do requestAnimationFrame for perfomant rendering
-    this.innerHTML = ''
-    this.append(...Template.compile(this, {
+    this.__root.innerHTML = ''
+    if(style) this.__root.innerHTML += `<style scoped>${style}</style>`
+    this.__root.append(...Template.compile(this, {
       template,
-      content: this.content,
-      state: this.state
+      content: this.__content,
+      state: this.__state
     }))
   }
-  emit() {
+  emit(eventName: string): EmitFunction {
+    const event: Event = new Event(eventName)
 
+    // Return emitter function
+    return (data?: any, options?: EmitOptions) => {
+      this.dispatchEvent(event)
+    }
+  }
+  setProperty(name: string, value: any) {
+    console.trace()
+    this.__state[name] = { _from: 'outside', value }
   }
 
   // Using callbacks
   connectedCallback() {
-    this.onBeforeMount?.()
+    this.onBeforeMount?.bind(this.__state)()
     this.render()
-    this.onMount?.()
+    this.onMount?.bind(this.__state)()
+  }
+  disconnectedCallback() {
+    this.onDestroy?.bind(this.__state)()
   }
 }
