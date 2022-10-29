@@ -6,7 +6,7 @@ import Registry from "./Registry"
 function getValue(name: string, params: TemplateParams) {
   // Non-primitive value
   if(name.startsWith('$')) {
-    return params.template.values[name] ?? name
+    return params.template.values[name] ?? params.state[name] ?? name
   }
   else {
     return params.state[name] ?? name
