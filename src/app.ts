@@ -32,7 +32,7 @@ class TodoListItem extends ComponentBase {
         width: 100%;
 
         padding: 10px 16px;
-        margin: 0;
+        margin-bottom: 8px;
 
         border: 2px solid #d8dadd;
         border-radius: 8px;
@@ -58,10 +58,10 @@ class TodoList extends ComponentBase {
   template() {
     return html`
       <div class="list">
-        ${this.items.map((item, i) => html`
+        ${this.items.map((item) => html`
           <todo-list-item
             text="${item}"
-            @remove="${this.removeItem(i)}"
+            @remove="${this.removeItem(item)}"
           ></todo-list-item>
         `)}
       </div>
@@ -84,9 +84,9 @@ class TodoList extends ComponentBase {
     `;
   }
 
-  removeItem(index: number) {
-    return function() {
-      console.log('got remove inside')
+  removeItem(val: string) {
+    return () => {
+      this.items = this.items.filter(currVal => currVal !== val)
     }
   }
 
@@ -114,7 +114,8 @@ class TodoList extends ComponentBase {
       :host {
         --font: Manrope, sans-serif;
 
-        display: block;
+        display: flex;
+        flex-direction: column;
 
         width: 100%;
         max-width: 360px;

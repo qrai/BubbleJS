@@ -1,12 +1,24 @@
 {
   "name": "bubble-js",
-  "private": true,
-  "version": "0.0.0",
+  "description": "Framework based on WebComponents with full support of TypeScript and zero dependencies.",
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "files": [
+    "build"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
+  "keywords": [
+    "framework",
+    "ui",
+    "webcomponents"
+  ],
+  "author": "qrai",
+  "license": "ISC",
   "devDependencies": {
     "vite": "^2.9.9"
   }

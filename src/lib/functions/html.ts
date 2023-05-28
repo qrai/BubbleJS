@@ -22,11 +22,7 @@ function serializeData(data: any, template: HtmlTemplate): string {
         }
 
         template.values[key] = childTemplate.values[valueName]
-        // this somehow not working
-        template.raw = template.raw.replace(valueName, key)
-
-        //TODO: need to fix a bug, where we change variable name in values but not changing in raw string
-        console.log('UPDATE TEMPLATE', template)
+        childTemplate.raw = childTemplate.raw.replace(valueName, key)
       }
       return childTemplate.raw
     })
@@ -69,8 +65,6 @@ export default function html(strings: TemplateStringsArray, ...keys: PossibleHtm
   strings.forEach((str: string, i: number) => {
     result.raw += str + (serializeData(keys[i], result) || '')
   })
-
-  console.log(result)
 
   return result
 }
