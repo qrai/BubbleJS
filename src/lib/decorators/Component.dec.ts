@@ -1,4 +1,4 @@
-import Registry from "../types/Registry"
+import Registry from "../core/Registry"
 
 export default function Component(name: string) {
   return function (target: any) {

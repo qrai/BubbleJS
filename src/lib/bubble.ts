@@ -1,6 +1,6 @@
-import ComponentBase from './types/ComponentBase'
+import ComponentBase from './core/ComponentBase'
 
-import Registry from './types/Registry'
+import Registry from './core/Registry'
 
 // Decorators
 import Component from './decorators/Component.dec.js'
@@ -13,6 +13,7 @@ import html from './functions/html'
 
 export {
   ComponentBase,
+
   Component,
   Prop,
   Ref,

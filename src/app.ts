@@ -1,40 +1,179 @@
-import { ComponentBase, Component, Prop, Ref, Registry, html } from './lib/bubble'
+import { ComponentBase, Component, Ref, Prop, Event, html } from './lib/bubble'
 
-// --html directive
-Registry.defineDirective('html', (el: HTMLElement, value: any) => {
-  el.innerHTML = typeof value === 'string' ? value : value.raw ?? ''
-})
+@Component('todo-list-item')
+class TodoListItem extends ComponentBase {
+  @Prop()
+  public text: string = '';
 
-function useRef(val: any): { value: any } {
-  return { value: null }
-}
-
-@Component('my-button')
-class MyButton extends ComponentBase {
   template() {
     return html`
-      <button>
-        <span --html="$hi"></span>
-      </button>
-    `
+      <div @click="${this.onClick}" class="list__item">
+        <p class="list__item_text">
+          ${this.text}
+        </p>
+      </div>
+    `;
+  }
+
+  onClick(e: Event) {
+    e.preventDefault()
+
+    // Emit remove of item
+    this.emit('remove')
   }
 
   styles() {
     return /*css*/`
-      button {
-        padding: 8px 20px;
+      :host {
+        --font: Manrope, sans-serif;
+      }
 
-        background: blue;
+      .list__item {
+        width: 100%;
+
+        padding: 10px 16px;
+        margin: 0;
+
+        border: 2px solid #d8dadd;
+        border-radius: 8px;
+
+        font-family: var(--font);
+      }
+
+      .list__item_text {
+        margin: 0;
+      }
+    `;
+  }
+}
+
+@Component('todo-list')
+class TodoList extends ComponentBase {
+  @Ref
+  public currentItem: string = '';
+
+  @Ref
+  public items: string[] = [];
+
+  template() {
+    return html`
+      <div class="list">
+        ${this.items.map((item, i) => html`
+          <todo-list-item
+            text="${item}"
+            @remove="${this.removeItem(i)}"
+          ></todo-list-item>
+        `)}
+      </div>
+
+      <div class="list__input-group">
+        <input
+          @input="${this.enterItem}"
+          type="text"
+          placeholder="Enter text"
+          class="list__input"
+        >
+
+        <button
+          @click="${this.addItem}"
+          class="list__input-button"
+        >
+          Add
+        </button>
+      </div>
+    `;
+  }
+
+  removeItem(index: number) {
+    return function() {
+      console.log('got remove inside')
+    }
+  }
+
+  addItem(e: Event) {
+    e.preventDefault();
+
+    // Add item
+    this.items = [
+      ...this.items,
+      this.currentItem
+    ];
+
+    // Reset input
+    this.currentItem = '';
+  }
+
+  enterItem(e: any) {
+    e.preventDefault();
+    
+    this.currentItem = e.target.value;
+  }
+
+  styles() {
+    return /*css*/`
+      :host {
+        --font: Manrope, sans-serif;
+
+        display: block;
+
+        width: 100%;
+        max-width: 360px;
+
+        margin: auto;
+      }
+
+      .list {
+        width: 100%;
+
+        display: flex;
+        flex-direction: column;
+      }
+
+      .list__input-group {
+        width: 100%;
+
+        margin-top: 8px;
+
+        display: flex;
+      }
+      .list__input-button {
+        margin-left: 8px;
+
+        padding: 12px 20px;
+
+        background: #4938ff;
         color: white;
 
         border: none;
-        border-radius: 10px;
+        border-radius: 8px;
         outline: none;
 
         cursor: pointer;
 
-        font-size: 14px;
+        font-family: var(--font);
+        font-size: 16px;
+
+        transition: 0.3s ease-in-out;
       }
-    `
+      .list__input-button:hover {
+        background: #6456fb;
+      }
+      .list__input {
+        width: 100%;
+
+        padding: 8px 12px;
+
+        border: none;
+        border-radius: 8px;
+        outline: none;
+
+        background: #e5e8ee;
+
+        font-family: var(--font);
+        font-size: 16px;
+
+        appearance: none;
+      }
+    `;
   }
 }

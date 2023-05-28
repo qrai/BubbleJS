@@ -1,4 +1,4 @@
-import PropOptions from "../types/PropOptions"
+import PropOptions from "../types/PropOptions.type"
 
 const Props = Symbol.for('props')
 

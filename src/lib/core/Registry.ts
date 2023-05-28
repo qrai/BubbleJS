@@ -1,4 +1,4 @@
-import Directive from './Directive'
+import Directive from '../types/Directive.type'
 
 class Registry {
   private style: HTMLElement | null = null

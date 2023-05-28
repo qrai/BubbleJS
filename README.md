@@ -14,23 +14,23 @@ Simple frontend framework using WebComponents.
 Components are classes that represents WebComponents. To define your component use a `Component` decorator with tag name of component as argument:
 
 ```ts
-import { ComponentBase, Component, html } from 'bubble-js'
+import { ComponentBase, Component, Ref, html } from 'bubble-js'
 
-@Component('my-component')
-class MyComponent extends ComponentBase {
-  // Template for rendering
+@Component('my-button')
+class MyButton extends ComponentBase {
+  @Ref
+  public count: number = 0;
+
   template() {
     return html`
-      <span>Hello world!</span>
+      <button @click="${this.onClick}">
+        Clicked ${this.count} times
+      </button>
     `
   }
-  
-  // Style of component
-  styles() {
-    return `
-      :host { /* ... */ }
-      span { color: red; }
-    `
+
+  onClick() {
+    this.count++;
   }
 
   // Lifecycle hooks
@@ -45,6 +45,30 @@ class MyComponent extends ComponentBase {
   }
   onDestroy() {
     console.log('Destroyed')
+  }
+
+  styles() {
+    return /*css*/`
+      button {
+        padding: 12px 20px;
+
+        background: #4938ff;
+        color: white;
+
+        border: none;
+        border-radius: 8px;
+        outline: none;
+
+        cursor: pointer;
+
+        font-size: 16px;
+
+        transition: 0.3s ease-in-out;
+      }
+      button:hover {
+        background: #6456fb;
+      }
+    `
   }
 }
 ```

@@ -1,12 +1,12 @@
-import HtmlTemplate from "./HtmlTemplate"
-import Template from "./Template"
+import HtmlTemplate from "../types/HtmlTemplate.type"
+import ComponentCompiler from "./ComponentCompiler"
 
 const ComponentPublicFunctions: string[] = [
   'render', 'emit'
 ]
 const ComponentPrivateFunctions: string[] = [
   'template',
-  'onBeforeMount', 'onMount', 'onAdopt', 'onDestroy'
+  'onBeforeMount', 'onMount', 'onBeforeUpdate', 'onUpdate', 'onAdopt', 'onDestroy'
 ]
 const ComponentProps: symbol = Symbol.for('props')
 const ComponentRefs: symbol = Symbol.for('refs')
@@ -17,6 +17,12 @@ type EmitOptions = {
 }
 type EmitFunction = {
   (data?: any, options?: EmitOptions): any
+}
+type CustomEmitOptions = {
+  bubbles: boolean,
+  composed: boolean,
+  cancelable?: boolean,
+  detail?: any
 }
 
 export default abstract class ComponentBase extends HTMLElement {
@@ -36,7 +42,7 @@ export default abstract class ComponentBase extends HTMLElement {
       get: (target: any, key: string) => {
         // render(), emit() functions
         if(ComponentPublicFunctions.includes(key)) {
-          return target[key]
+          return target[key].bind(this)
         }
         // Attribute
         else if(target.hasAttribute(key)) { return target.getAttribute(key) }
@@ -84,34 +90,65 @@ export default abstract class ComponentBase extends HTMLElement {
   // Hooks
   onBeforeMount?(): void
   onMount?(): void
+  onBeforeUpdate?(): void
+  onUpdate?(): void
   onAdopt?(): void
   onDestroy?(): void
 
   // Functionality
-  render() {
+  private isolateRender(node: HTMLElement | ShadowRoot, interactive: boolean = true) {
     // Get HTML template
     let template: HtmlTemplate = this.template.bind(this.__state)()
     let style: string | undefined = this.styles?.bind(this.__state)()
 
+    // Reset
+    node.innerHTML = ''
+
+    // Add style
+    if(style) node.innerHTML += `<style scoped>${style}</style>`
+
     // Compile template
-    //TODO: do DOM diffing for perfomant rendering
-    //TODO: do requestAnimationFrame for perfomant rendering
-    this.__root.innerHTML = ''
-    if(style) this.__root.innerHTML += `<style scoped>${style}</style>`
-    this.__root.append(...Template.compile(this, {
+    const compiler = new ComponentCompiler(this)
+    node.append(...compiler.compile({
       template,
       content: this.__content,
       state: this.__state
-    }))
-  }
-  emit(eventName: string): EmitFunction {
-    const event: Event = new Event(eventName)
+    }, interactive))
 
-    // Return emitter function
-    return (data?: any, options?: EmitOptions) => {
-      this.dispatchEvent(event)
-    }
+    return node
   }
+  public render() {
+    // Clone root node and apply changes
+    const rootCopy: HTMLElement = this.isolateRender(document.createElement('div'), false) as HTMLElement
+
+    // Clone original root (current)
+    const originalRootCopy = document.createElement('div')
+    originalRootCopy.innerHTML = this.__root.innerHTML
+
+    // Compare content of changed and nonchanged roots
+    if(rootCopy.isEqualNode(originalRootCopy) === false) {
+      // Call before update hook
+      this.onBeforeUpdate?.bind(this.__state)()
+      // Do update DOM
+      this.isolateRender(this.__root)
+      // Call after update hook
+      this.onUpdate?.bind(this.__state)()
+
+      // Clear up copies
+      rootCopy.remove()
+      originalRootCopy.remove()
+    }
+
+    //TODO: do requestAnimationFrame for perfomant rendering without freezing
+  }
+
+  emit(eventName: string, options: CustomEmitOptions = {
+    composed: true,
+    bubbles: true
+  }) {
+    this.__root.dispatchEvent(new CustomEvent(eventName, options))
+  }
+
   setProperty(name: string, value: any) {
     console.trace()
     this.__state[name] = { _from: 'outside', value }
