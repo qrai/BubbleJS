@@ -1,16 +1,27 @@
 {
-  "name": "bubble-js",
+  "name": "bubbler",
   "description": "Framework based on WebComponents with full support of TypeScript and zero dependencies.",
   "version": "1.0.0",
-  "main": "build/index.js",
-  "types": "build/index.d.ts",
+  "main": "./dist/bubbler.umd.cjs",
+  "module": "./dist/bubbler.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/bubbler.js",
+      "require": "./dist/bubbler.umd.cjs"
+    }
+  },
   "files": [
-    "build"
+    "dist"
   ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qrai/BubbleJS.git"
   },
   "keywords": [
     "framework",
@@ -19,7 +30,13 @@
   ],
   "author": "qrai",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/qrai/BubbleJS/issues"
+  },
+  "homepage": "https://github.com/qrai/BubbleJS#readme",
   "devDependencies": {
-    "vite": "^2.9.9"
+    "@types/node": "^20.2.5",
+    "vite": "^2.9.9",
+    "vite-plugin-dts": "^2.3.0"
   }
 }

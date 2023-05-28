@@ -1,4 +1,4 @@
-import { ComponentBase, Component, Ref, Prop, Event, html } from './lib/bubble'
+import { ComponentBase, Component, Ref, Prop, Event, html } from './lib/bubbler'
 
 @Component('todo-list-item')
 class TodoListItem extends ComponentBase {
