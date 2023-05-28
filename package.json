@@ -1,14 +1,14 @@
 {
-  "name": "bubbler",
+  "name": "bubble-framework",
   "description": "Framework based on WebComponents with full support of TypeScript and zero dependencies.",
   "version": "1.0.0",
-  "main": "./dist/bubbler.umd.cjs",
-  "module": "./dist/bubbler.js",
+  "main": "./dist/bubble-framework.umd.cjs",
+  "module": "./dist/bubble-framework.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/bubbler.js",
-      "require": "./dist/bubbler.umd.cjs"
+      "import": "./dist/bubble-framework.js",
+      "require": "./dist/bubble-framework.umd.cjs"
     }
   },
   "files": [

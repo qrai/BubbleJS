@@ -8,9 +8,9 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/lib/bubbler.ts'),
-      name: 'bubbler',
-      fileName: 'bubbler',
+      entry: resolve(__dirname, 'src/lib/index.ts'),
+      name: 'bubble-framework',
+      fileName: 'bubble-framework',
     },
   },
   plugins: [dts()],
