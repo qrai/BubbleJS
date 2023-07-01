@@ -6,6 +6,7 @@ import Registry from './core/Registry'
 import Component from './decorators/Component.dec'
 import Prop from './decorators/Prop.dec'
 import Ref from './decorators/Ref.dec'
+import WatchRef from './decorators/WatchRef.dec'
 import Event from './decorators/Event.dec'
 
 // Etc
@@ -17,6 +18,7 @@ export {
   Component,
   Prop,
   Ref,
+  WatchRef,
   Event,
 
   Registry,

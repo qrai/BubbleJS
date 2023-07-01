@@ -33,6 +33,10 @@ export default abstract class ComponentBase extends HTMLElement {
   constructor() {
     super()
 
+    // TODO: Add changes watching to refs that is Array/Object type
+    // arrayRef.push(1) is not rerenders
+    // objectRef.prop = 1 is not rerenders
+
     this.__content = this.innerHTML
     this.innerHTML = ''
 
@@ -51,7 +55,7 @@ export default abstract class ComponentBase extends HTMLElement {
           return target[key]
         }
         // Ref
-        else if(target[ComponentRefs]?.includes(key) && key in target) {
+        else if(target[ComponentRefs]?.[key] !== undefined && key in target) {
           return target[key]
         }
         // Method
@@ -67,9 +71,12 @@ export default abstract class ComponentBase extends HTMLElement {
           return true
         }
         // Ref
-        else if(target[ComponentRefs]?.includes(key) && key in target) {
+        else if(target[ComponentRefs]?.[key] !== undefined && key in target) {
+          const oldValue = target[key]
           target[key] = value
           this.render()
+          // Call watcher
+          target[ComponentRefs][key]?.bind(this.__state)(oldValue, value)
           return true
         }
         // Attribute
@@ -79,6 +86,14 @@ export default abstract class ComponentBase extends HTMLElement {
         }
 
         return false
+      },
+      ownKeys(target: any) {
+        return [
+          ...target[ComponentProps] ?? [],
+          ...Object.keys(target[ComponentRefs] ?? []),
+          ...ComponentPublicFunctions,
+          //TODO: methods, attributes
+        ]
       }
     })
   }
@@ -138,8 +153,6 @@ export default abstract class ComponentBase extends HTMLElement {
       rootCopy.remove()
       originalRootCopy.remove()
     }
-
-    //TODO: do requestAnimationFrame for perfomant rendering without freezing
   }
 
   emit(eventName: string, options: CustomEmitOptions = {

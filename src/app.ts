@@ -1,4 +1,4 @@
-import { ComponentBase, Component, Ref, Prop, html } from './lib/index'
+import { ComponentBase, Component, Ref, WatchRef, Prop, html } from './lib/index'
 
 @Component('todo-list-item')
 class TodoListItem extends ComponentBase {
@@ -49,7 +49,9 @@ class TodoListItem extends ComponentBase {
 
 @Component('todo-list')
 class TodoList extends ComponentBase {
-  @Ref
+  @WatchRef<string>(function (oldVal, newVal) {
+    console.log('changed current', oldVal, newVal)
+  })
   public currentItem: string = '';
 
   @Ref
