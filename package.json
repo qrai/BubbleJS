@@ -1,7 +1,7 @@
 {
   "name": "bubblejs-core",
   "description": "Framework based on WebComponents with full support of TypeScript and zero dependencies.",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "main": "./dist/bubble-framework.js",
   "module": "./dist/bubble-framework.mjs",
   "types": "./dist/app.d.ts",
