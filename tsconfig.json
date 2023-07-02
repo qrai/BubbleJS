@@ -7,7 +7,7 @@
       "experimentalDecorators": true,
   
       /* Modules */
-      "module": "ESNext",
+      "module": "ES6",
       "rootDir": "src",
       "moduleResolution": "classic",
   

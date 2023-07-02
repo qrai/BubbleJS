@@ -11,6 +11,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/lib/index.ts'),
       name: 'bubble-framework',
       fileName: 'bubble-framework',
+      formats: ['es', 'umd', 'cjs']
     },
   },
   plugins: [dts()],
