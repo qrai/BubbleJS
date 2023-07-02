@@ -2,10 +2,13 @@
 Frontend framework based on WebComponents with full support of TypeScript.
 
 # Features
-- [`Components`](#components)
+- [Components](#components)
   - [`Refs`](#refs)
   - [`WatchRefs`](#watchrefs)
+  - [`MapRefs`](#maprefs)
+  - [`CachedRefs`](#cachedrefs)
   - [`Props`](#props)
+  - [`Elements`](#elements)
   - [`Events`](#events)
   - [`Slots`](#slots)
   - [`Binding`](#binding)
@@ -14,6 +17,7 @@ Frontend framework based on WebComponents with full support of TypeScript.
   - [Loops](#loops)
 - [Routing & Views](#routing)
 - [Directives](#directives)
+- [Stores](#stores)
 - [Caching](#caching)
 
 ## Components
@@ -24,7 +28,7 @@ import { ComponentBase, Component, Ref, html } from 'bubblejs-core';
 
 @Component('my-component')
 class MyComponent extends ComponentBase {
-  @Ref
+  @Ref()
   public count: number = 0;
 
   template() {
@@ -93,7 +97,7 @@ import { ComponentBase, Component, Ref, html } from 'bubblejs-core';
 
 @Component('my-component')
 class MyComponent extends ComponentBase {
-  @Ref
+  @Ref()
   public count: number = 0;
 
   template() {
@@ -116,6 +120,38 @@ class MyComponent extends ComponentBase {
 ```
 
 Refs can be accessed via `this` context inside `template`, lifecycle hooks, event listeners, methods.
+
+For more complex scenarios `Ref` has callbacks that you can use:
+- `init` (Called before mount, when value of ref should be initialized)
+- `get` (Called when someone is trying to get ref value)
+- `set` (Called when someone is trying to change ref value)
+```ts
+import { ComponentBase, Component, Ref, html } from 'bubblejs-core';
+
+@Component('my-component')
+class MyComponent extends ComponentBase {
+  @Ref({
+    init(key) => console.log('Initialized ref'),
+    get(key) => console.log('Trying to get ref value'),
+    set(key, newVal, oldVal) => console.log('Trying to change ref value'),
+  })
+  public count: number = 0;
+
+  template() {
+    return html`
+      <span>
+        Count is ${ this.count }
+      </span>
+    `;
+  }
+
+  onMount() {
+    setInterval(() => {
+      this.count++
+    }, 100);
+  }
+}
+```
 
 ## WatchRefs
 ...
@@ -146,6 +182,31 @@ class MyComponent extends ComponentBase {
 
 Props can be accessed via `this` context inside `template`, lifecycle hooks, event listeners, methods.
 
+## Elements
+Elements are simply refs that stores html elements. You can use them to automatically get html element from your template and work with it.
+```ts
+import { ComponentBase, Component, Element, html } from 'bubblejs-core';
+
+@Component('my-component')
+class MyComponent extends ComponentBase {
+  @Element('.some-input')
+  public inputEl?: HTMLInputElement;
+
+  template() {
+    return html`
+      <div class="some-container">
+        <input class="some-input">
+      </div>
+    `;
+  }
+
+  onMount() {
+    if(this.inputEl) {
+      this.inputEl.value = 'hello world!';
+    }
+  }
+}
+```
 ## Events
 Events allows you to emit custom events up to parent component.
 You just have to call `this.emit(eventName, ...args)` method to emit your event.
@@ -196,7 +257,7 @@ import { ComponentBase, Component, Ref, html } from './lib/index';
 
 @Component('my-component')
 class MyComponent extends ComponentBase {
-  @Ref
+  @Ref()
   public doRender: boolean = false;
 
   template() {
@@ -226,10 +287,10 @@ import { ComponentBase, Component, Ref, html } from './lib/index';
 
 @Component('my-component')
 class MyComponent extends ComponentBase {
-  @Ref
+  @Ref()
   public isRequired: boolean = false;
 
-  @Ref
+  @Ref()
   public isDisabled: boolean = true;
 
   template() {
@@ -254,7 +315,7 @@ import { ComponentBase, Component, Ref, html } from 'bubblejs-core';
 
 @Component('some-list')
 class SomeList extends ComponentBase {
-  @Ref
+  @Ref()
   public items: string[] = [
     'hello',
     'world',
@@ -291,7 +352,7 @@ import { ComponentBase, View, Ref, html } from 'bubblejs-core';
 
 @View('/')
 class IndexView extends ComponentBase {
-  @Ref
+  @Ref()
   public subject = 'world';
 
   template() {
@@ -306,4 +367,8 @@ As you see, views are basically components but defined in different way.
 ## Directives
 -
 
+## Stores
+-
+
 ## Caching
+-

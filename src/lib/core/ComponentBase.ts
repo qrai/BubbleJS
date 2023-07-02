@@ -1,3 +1,4 @@
+import { Elements, Props, Refs } from "../types/ComponentType.type"
 import HtmlTemplate from "../types/HtmlTemplate.type"
 import ComponentCompiler from "./ComponentCompiler"
 
@@ -8,9 +9,6 @@ const ComponentPrivateFunctions: string[] = [
   'template',
   'onBeforeMount', 'onMount', 'onBeforeUpdate', 'onUpdate', 'onAdopt', 'onDestroy'
 ]
-const ComponentProps: symbol = Symbol.for('props')
-const ComponentRefs: symbol = Symbol.for('refs')
-const ComponentEvents: symbol = Symbol.for('events')
 
 type EmitOptions = {
   bubbling: boolean
@@ -48,35 +46,52 @@ export default abstract class ComponentBase extends HTMLElement {
         if(ComponentPublicFunctions.includes(key)) {
           return target[key].bind(this)
         }
-        // Attribute
-        else if(target.hasAttribute(key)) { return target.getAttribute(key) }
         // Prop
-        else if(target[ComponentProps]?.[key] && key in target) {
+        else if(target[Props]?.[key] && key in target) {
           return target[key]
         }
         // Ref
-        else if(target[ComponentRefs]?.[key] !== undefined && key in target) {
+        else if(target[Refs]?.[key] !== undefined && key in target) {
+          // Ref getter
+          if(target[Refs][key]?.get !== undefined) {
+            return target[Refs][key]?.get.bind(this.__state)(key)
+          }
+
           return target[key]
+        }
+        // Element
+        else if(target[Elements]?.[key] !== undefined) {
+          return this.__root.querySelector(target[Elements][key].query)
         }
         // Method
         else if(key in target && typeof target[key] === 'function') {
           return ComponentPrivateFunctions.includes(key) ? undefined : target[key]
         }
+        // Attribute
+        else if(target.hasAttribute(key)) {
+          return target.getAttribute(key)
+        }
       },
       set: (target: any, key: string, value: any) => {
         // Prop
-        if(target[ComponentProps]?.[key] && key in target && value?._from === 'outside') {
+        if(target[Props]?.[key] && key in target && value?._from === 'outside') {
           target[key] = value.value
           this.render()
           return true
         }
         // Ref
-        else if(target[ComponentRefs]?.[key] !== undefined && key in target) {
+        else if(target[Refs]?.[key] !== undefined && key in target) {
           const oldValue = target[key]
-          target[key] = value
+          let newValue = value
+
+          // Ref setter
+          if(target[Refs][key]?.set !== undefined)
+            newValue = target[Refs][key]?.set?.bind(this.__state)(newValue)
+
+          // Change value & rerender
+          target[key] = newValue
           this.render()
-          // Call watcher
-          target[ComponentRefs][key]?.bind(this.__state)(oldValue, value)
+
           return true
         }
         // Attribute
@@ -85,12 +100,14 @@ export default abstract class ComponentBase extends HTMLElement {
           return true
         }
 
+        console.log(key, target[Refs])
+
         return false
       },
       ownKeys(target: any) {
         return [
-          ...target[ComponentProps] ?? [],
-          ...Object.keys(target[ComponentRefs] ?? []),
+          ...target[Props] ?? [],
+          ...Object.keys(target[Refs] ?? []),
           ...ComponentPublicFunctions,
           //TODO: methods, attributes
         ]
@@ -110,6 +127,18 @@ export default abstract class ComponentBase extends HTMLElement {
   onAdopt?(): void
   onDestroy?(): void
 
+  // Caching
+  private initRefs() {
+    for(const refKey in (this as any)[Refs]) {
+      const refOptions = (this as any)[Refs][refKey];
+
+      if(refOptions?.init !== undefined) {
+        const refInitted = refOptions?.init.bind(this.__state)(refKey)
+        
+        if(refInitted) (this as any)[refKey] = refInitted
+      }
+    }
+  }
   // Functionality
   private isolateRender(node: HTMLElement | ShadowRoot, interactive: boolean = true) {
     // Get HTML template
@@ -169,6 +198,7 @@ export default abstract class ComponentBase extends HTMLElement {
 
   // Using callbacks
   connectedCallback() {
+    this.initRefs()
     this.onBeforeMount?.bind(this.__state)()
     this.render()
     this.onMount?.bind(this.__state)()

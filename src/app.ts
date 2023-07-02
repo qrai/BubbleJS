@@ -1,4 +1,4 @@
-import { ComponentBase, Component, View, Ref, WatchRef, Prop, html } from './lib/index'
+import { ComponentBase, Component, View, Ref, Element, CachedRef, Prop, html } from './lib/index'
 
 @Component('todo-list-item')
 class TodoListItem extends ComponentBase {
@@ -49,13 +49,14 @@ class TodoListItem extends ComponentBase {
 
 @Component('todo-list')
 class TodoList extends ComponentBase {
-  @WatchRef<string>(function (oldVal, newVal) {
-    console.log('changed current', oldVal, newVal)
-  })
+  @Ref()
   public currentItem: string = '';
 
-  @Ref
+  @CachedRef('storage')
   public items: string[] = [];
+
+  @Element('.list__input')
+  public input?: HTMLInputElement
 
   template() {
     return html`
@@ -84,6 +85,10 @@ class TodoList extends ComponentBase {
         </button>
       </div>
     `;
+  }
+
+  onMount() {
+    if(this.input) this.input.value = this.currentItem
   }
 
   removeItem(val: string) {

@@ -1,8 +1,11 @@
-const Refs = Symbol.for('refs')
+import ComponentRef from "../types/ComponentRef.type"
+import { Refs } from "../types/ComponentType.type"
 
-export default function Ref(target: any, propertyKey: string) {
-  target[Refs] = target[Refs] ?? {}
-  target[Refs][propertyKey] = null
+export default function Ref<T>(opts?: ComponentRef<T>) {
+  return function (target: any, propertyKey: string) {
+    target[Refs] = target[Refs] ?? {}
+    target[Refs][propertyKey] = opts ?? {}
+  }
 }
 
 /* TS5 Implementation:
