@@ -2,15 +2,19 @@
 Frontend framework based on WebComponents with full support of TypeScript.
 
 # Features
-- Components
-  - Refs 
-  - Props
-  - Events
-  - Conditions
-  - Loops
-- Directives
-- Routing & Views
-- Caching
+- [`Components`](#components)
+  - [`Refs`](#refs)
+  - [`WatchRefs`](#watchrefs)
+  - [`Props`](#props)
+  - [`Events`](#events)
+  - [`Slots`](#slots)
+  - [`Binding`](#binding)
+  - [Conditional elements (`--if`, `--else`)](#conditional-elements)
+  - [Conditional attributes (`attr:if`)](#conditional-attributes)
+  - [Loops](#loops)
+- [Routing & Views](#routing)
+- [Directives](#directives)
+- [Caching](#caching)
 
 ## Components
 Components are classes that represents WebComponents. To define your component use a `Component` decorator with tag name of component as argument:
@@ -179,10 +183,13 @@ class MyParent extends ComponentBase {
 **Notice**: `emit` method is calls native `dispatchEvent`, that means you can also
 use native `addEventListener` to catch your component's custom event.
 
-## Directives
--
+## Slots
+in progress.
 
-## Conditions (Elements)
+## Binding
+in progress.
+
+## Conditional elements
 For conditional rendering framework is provides special reserved directives `--if` and `--else`. You should pass boolean value, if value will be `true`, the element will be rendered, otherwise it will render the `--else` element.
 ```ts
 import { ComponentBase, Component, Ref, html } from './lib/index';
@@ -211,7 +218,7 @@ After render:
 </my-component>
 ```
 
-## Conditions (Attributes)
+## Conditional attributes
 As you apply conditions to render or not elements, you can apply conditions to set attribute or not. Framework provides special syntax for conditional attributes: `attrName:if="${true | false}"`. If value will be true, the element will have `attrName=""` attribute, otherwise attribute will be not added.
 
 ```ts
@@ -295,3 +302,8 @@ class IndexView extends ComponentBase {
 }
 ```
 As you see, views are basically components but defined in different way.
+
+## Directives
+-
+
+## Caching
