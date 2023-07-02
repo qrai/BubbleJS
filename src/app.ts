@@ -1,4 +1,4 @@
-import { ComponentBase, Component, Ref, WatchRef, Prop, html } from './lib/index'
+import { ComponentBase, Component, View, Ref, WatchRef, Prop, html } from './lib/index'
 
 @Component('todo-list-item')
 class TodoListItem extends ComponentBase {
@@ -178,5 +178,22 @@ class TodoList extends ComponentBase {
         appearance: none;
       }
     `;
+  }
+}
+
+@View('/')
+class IndexView extends ComponentBase {
+  template() {
+    return html`
+      <todo-list></todo-list>
+    `
+  }
+
+  styles() {
+    return /*css*/`
+      :host {
+        display: flex !important;
+      }
+    `
   }
 }
